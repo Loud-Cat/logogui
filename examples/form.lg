@@ -1,0 +1,167 @@
+; LogoGUI Example 2: Simple Form
+; Written in Berkley Logo
+
+setlabelheight 25
+
+; Load the framework
+LOAD "src/logogui.lg
+
+To make.named.textbox :name
+  Localmake "label make.label :name
+  Localmake "textbox make.textbox
+  Localmake "list (List :label :textbox)
+  
+  Localmake "out (make.box :list)
+  set.box.padding.around :out 0
+  set.box.border :out "FALSE
+  Output :out
+End
+
+To make.named.radio :group :name
+	Localmake "label make.label :name
+	Localmake "btn (make.radio.button :group)
+	Localmake "list (List :label :btn)
+	
+	Localmake "out (make.box :list)
+  set.box.padding.around :out 0
+  set.box.border :out "FALSE
+  Output :out
+End
+
+To make.named.radio.list :group :names
+  Localmake "list []
+  Foreach :names [
+    Make "list Lput (make.named.radio :group ?) :list
+  ]
+  
+  Localmake "out (make.box :list)
+  set.box.padding.around :out 0
+  set.box.border :out "FALSE
+  Output :out
+End
+
+Make "components []
+
+Make "title.label make.label [Logo GUI Demo 2: Simple Form]
+add.item "components :title.label
+
+Make "first.box (make.named.textbox [First Name:])
+add.item "components :first.box
+
+Make "last.box (make.named.textbox [Last Name:\ ])
+add.item "components :last.box
+
+Make "first.textbox ITEM 2 comps :first.box
+Make "last.textbox ITEM 2 comps :last.box
+
+To textbox.read :tbox
+  IF AND (textbox.active :tbox) :logogui.key.pressed [
+    textbox.read.char :tbox
+    repaint
+  ]
+End
+
+add.mouse.listener :first.textbox [
+	[] []
+	[ set.textbox.active :first.textbox "TRUE repaint ] []
+	[ textbox.read :first.textbox ] []
+]
+
+add.mouse.listener :last.textbox [
+	[] []
+	[ set.textbox.active :last.textbox "TRUE repaint ] []
+	[ textbox.read :last.textbox ]
+]
+
+Make "genders [M F Other]
+Make "gender.label make.label [Gender:]
+Make "gender.radio.box (make.named.radio.list "gender :genders)
+Make "gender.box (make.box (List :gender.label :gender.radio.box))
+
+Foreach :genders [
+	; The actions of event listeners are actually "instructionlists".
+	; this means that the interpreter runs them as if they were an expression.
+	; These lines create an explicit expression, since using the current objects
+	; directly would hard-code it to the instructionlist and would not
+	; represent the state of the components in the future.
+	Localmake "btn (se [item 2 comps item] # [comps :gender.radio.box])
+	Localmake "command (se "select.radio.button :btn "repaint)
+	
+	; empty actions for mouse over and mouse out
+	; command list for mouse pressed
+	add.mouse.listener run :btn (List [] [] :command)
+]
+
+set.box.padding.around :gender.box 0
+set.box.border :gender.box "FALSE
+add.item "components :gender.box
+
+Make "adult.label make.label [Over 18 years old?]
+Make "adult.checkbox make.checkbox
+
+add.mouse.listener :adult.checkbox [
+	[] []
+	[ toggle.checkbox :adult.checkbox repaint ]
+]
+
+Make "adult.list (List :adult.label :adult.checkbox)
+Make "adult.box (make.box :adult.list)
+
+set.box.padding.around :adult.box 0
+set.box.border :adult.box "FALSE
+  
+add.item "components :adult.box
+
+Make "submit.button make.button [Submit]
+
+To get.gender
+  Localmake "index selected.radio "gender
+  OP IfElse :index = -1 [ [Not specified] ] [ item :index :genders ]
+End
+
+To print.stuff
+  Type [Name:\ ]
+  Print (se textbox.text :first.textbox textbox.text :last.textbox)
+  
+  Print (se "Gender: get.gender)
+  
+  Print (se "Adult: (IFELSE checkbox.selected :adult.checkbox ["Yes] ["No]))
+End
+
+add.mouse.listener :submit.button [
+ [] []
+ [ print.stuff ]
+]
+
+add.item "components :submit.button
+
+Make "frame (make.box :components "Y)
+
+To move.frame
+  repack.box :frame
+  Make "w comp.width :frame
+  Make "h comp.height :frame
+  
+  Make "dx (:w / -2) - (comp.x :frame)
+  Make "dy (:h / 2 + 75) - (comp.y :frame)
+  translate.comp :frame :dx :dy
+End
+
+To repaint
+	repack.box :frame
+	center.component :frame :title.label
+	
+	Clearscreen
+  draw.box :frame
+End
+
+fullscreen
+move.frame
+
+To start
+  repaint
+  start.listeners
+End
+
+start
+

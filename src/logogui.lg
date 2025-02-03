@@ -1,0 +1,10 @@
+; Logo GUI: A Graphical User Interface framework written in Berkley Logo
+; LOAD this file to import the library to your project.
+
+; Import modules
+FOREACH [textlabel textbox button checkbox layout tools interaction radio] [
+  LOCALMAKE "file (WORD "src/ ? ".lg)
+  LOAD :file
+  PRINT (SENTENCE "Loaded :file)
+]
+

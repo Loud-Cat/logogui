@@ -1,0 +1,121 @@
+; Logo GUI: Helper Tools
+; Made in Berkley Logo
+
+; Shorthand for creating an array from a number of items.
+; This way, you don't have to use LISTTOARRAY (LIST 1 2 3)
+; as you can simply do (arr 1 2 3)
+TO arr [:items]
+  OUTPUT LISTTOARRAY :items
+END
+
+; Appends an item to a global variable whose name is the value of :thing
+TO add.item :thing :item
+  MAKE :thing LPUT :item (THING :thing)
+END
+
+; Outputs the total characters (including spaces)
+; in a word or list of words
+TO countwords :words
+ IF WORD? :words     [ OUTPUT COUNT :words ]
+ IF EMPTY? :words    [ OUTPUT 0 ]
+ 
+ LOCALMAKE "letters COUNT (APPLY "WORD :words)
+ LOCALMAKE "spaces (COUNT :words) - 1
+ OUTPUT :letters + spaces
+END
+
+; Note: depending on the implementation, rotated text might not be supported.
+; This procedure assumes that the turtle is facing the appropriate heading.
+TO underline :text
+  LOCALMAKE "count countwords :text
+  LOCALMAKE "w ITEM 1 LABELSIZE
+  
+  LABEL :text
+  
+  RT 90
+  FD :w * :count
+  LT 90
+END
+
+TO letterp :keycode
+  OUTPUT (OR
+    (AND (:keycode >= 65) (:keycode <= 90))
+    (AND (:keycode >= 97) (:keycode <= 122)))
+END
+
+TO symbolicp :keycode
+  OUTPUT (OR
+    (letterp :keycode)
+    MEMBER? (char :keycode) [
+      ! @ # $ % ^ & * ( ) _ +
+      1 2 3 4 5 6 7 8 9 0 - =
+      \[ \] \{ \} \\  \; ' : '
+      " < > ? , . / \ 
+    ]
+  )
+END
+
+TO make.outline :comp
+  LOCALMAKE "box (make.box (LIST :comp))
+  set.box.border :box "TRUE
+  set.box.padding.around :box 0
+  OUTPUT :box
+END
+
+TO toggle.checkbox :cbox
+  set.checkbox.selected :cbox NOT (checkbox.selected :cbox)
+END
+
+
+; mouse-over-predicate
+; Returns true if the user's mouse is currently within the bounds
+; of the given component.
+; Note: does NOT modify the given component.
+TO mouseoverp :comp
+ LOCALMAKE "lx comp.x :comp
+ LOCALMAKE "ty comp.y :comp
+ LOCALMAKE "w comp.width :comp
+ LOCALMAKE "h comp.height :comp
+ 
+ LOCALMAKE "mouse MOUSEPOS
+ LOCALMAKE "mx ITEM 1 :mouse
+ LOCALMAKE "my ITEM 2 :mouse
+ 
+ OUTPUT AND (AND (:mx > :lx) (:mx < :lx + :w)) ~
+             AND (:my < :ty) (:my > :ty - :h)
+END
+
+TO translate.comp :comp :dx :dy
+  set.comp.x :comp (comp.x :comp) + :dx
+  set.comp.y :comp (comp.y :comp) + :dy
+  
+  IF (comp.type :comp) = "BOX [
+    FOREACH comps :comp [
+      translate.comp ? :dx :dy
+    ]
+  ]
+  
+END
+
+TO center.component :parent :child
+  LOCALMAKE "axis box.axis :parent
+  
+  IFELSE :axis = "X [
+    LOCALMAKE "ph comp.height :parent
+    LOCALMAKE "py comp.y :parent
+    
+    LOCALMAKE "ch comp.height :child
+    set.comp.y :child :py - (:ph / 2) + (:ch / 2)
+  ] [
+    LOCALMAKE "pw comp.width :parent
+    LOCALMAKE "px comp.x :parent
+    
+    LOCALMAKE "cw comp.width :child
+    set.comp.x :child :px + (:pw / 2) - (:cw / 2)
+  ]
+  
+  LOCALMAKE "ct comp.type :child
+  IF :ct = "BOX [ repack.box :child ]
+END
+
+

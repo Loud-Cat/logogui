@@ -1,0 +1,105 @@
+
+; All components (including containers) start with the same 3 properties:
+;   1. type (word):     the component type (button, label, box, etc)
+;   2. position (list): the absolute top-left coordinate of the component
+;   3. size (list):     the width and height of the component
+;		4. mouse (list)     the last recorded state of the mouse: [over, pressed]
+; Most components also have other properties, but it varies between components
+
+; ========== GETTERS AND SETTERS: ALL COMPONENTS ========== ;
+
+TO comp.type :comp
+  OUTPUT ITEM 1 :comp
+END
+
+TO set.comp.type :comp :type
+  SETITEM 1 :comp :type
+END
+
+TO comp.pos :comp
+  OUTPUT ITEM 2 :comp
+END
+
+TO set.comp.xy :comp :x :y
+  set.comp.x :comp :x
+  set.comp.y :comp :y
+END
+
+TO comp.x :comp
+  OUTPUT ITEM 1 (comp.pos :comp)
+END
+
+TO set.comp.x :comp :x
+  SETITEM 1 (comp.pos :comp) :x
+END
+
+TO comp.y :comp
+  OUTPUT ITEM 2 (comp.pos :comp)
+END
+
+TO set.comp.y :comp :y
+  SETITEM 2 (comp.pos :comp) :y
+END
+
+TO comp.size :comp
+  OUTPUT ITEM 3 :comp
+END
+
+TO set.comp.size :comp :size
+  SETITEM 3 :comp :size
+END
+
+TO comp.width :comp
+  OUTPUT ITEM 1 (comp.size :comp)
+END
+
+TO set.comp.width :comp :w
+  SETITEM 1 (comp.size :comp) :w
+END
+
+TO comp.height :comp
+  OUTPUT ITEM 2 (comp.size :comp)
+END
+
+TO set.comp.height :comp :h
+  SETITEM 2 (comp.size :comp) :h
+END
+
+TO comp.text :comp
+  OUTPUT CASE comp.type :comp [
+    [[BUTTON] button.text :comp]
+    [[TEXTBOX] textbox.text :comp]
+    [[LABEL] label.text :comp]
+    [ELSE []]
+  ]
+END
+
+TO set.comp.text :comp :text
+  CASE comp.type :comp [
+    [[BUTTON] set.button.text :comp :text]
+    [[TEXTBOX] set.textbox.text :comp :text]
+    [[LABEL] set.label.text :comp :text]
+  ]
+END
+
+; ===== MOUSE ===== ;
+TO comp.mouse :comp
+  OP ITEM 4 :comp
+END
+
+TO comp.mouse.over :comp
+  OUTPUT ITEM 1 (ITEM 4 :comp)
+END
+
+TO set.comp.mouse.over :comp :tf
+  SETITEM 1 (ITEM 4 :comp) :tf
+END
+
+TO comp.mouse.pressed :comp
+  OUTPUT ITEM 2 (ITEM 4 :comp)
+END
+
+TO set.comp.mouse.pressed :comp :tf
+  SETITEM 2 (ITEM 4 :comp) :tf
+END
+

@@ -1,0 +1,122 @@
+; LogoGUI: Text Input
+; Written in Berkley Logo
+
+MAKE "logogui.textbox.padding 5
+MAKE "logogui.textbox.width.min 100
+
+; Make Text box
+; Creates the properties of a text input GUI component
+; Outputs an array containing [TEXTBOX, position, size, text, cursor] where:
+; position is the top-left coordinate,
+; size is the width and height,
+; text is the text,
+; and cursor is the current index (starting at 1) of the text cursor
+TO make.textbox [:text "] [:width 100] [:ax 0] [:ay 0]
+  LOCALMAKE "position LISTTOARRAY (LIST :ax :ay)
+  LOCALMAKE "size calc.button.size :text
+  IF (ITEM 1 :size) < :width [
+    SETITEM 1 :size :width
+  ]
+  
+  LOCALMAKE "active "FALSE
+  LOCALMAKE "mouse {FALSE FALSE}
+  OUTPUT LISTTOARRAY (LIST "TEXTBOX :position :size :mouse :text :active)
+END
+
+; Draw Text Box
+; Draws a text input box to the screen
+; TODO: implement proper draw procedure
+TO draw.textbox :tbox
+  LOCALMAKE "tempx XCOR
+  LOCALMAKE "tempy YCOR
+  LOCALMAKE "temph HEADING
+  LOCALMAKE "tempd PENDOWN?
+  
+  LOCALMAKE "lx comp.x :tbox
+  LOCALMAKE "ty comp.y :tbox
+  LOCALMAKE "w comp.width :tbox
+  LOCALMAKE "h comp.height :tbox
+  LOCALMAKE "paddingx (THING "logogui.textbox.padding)
+  LOCALMAKE "paddingy :paddingx - 2
+  
+  PENUP
+  SETX :lx
+  SETY :ty - :h
+  SETHEADING 90
+  
+  ; Draw the border of the text box
+  PENDOWN
+  REPEAT 2 [ FD :w LT 90 FD :h LT 90 ]
+  
+  ; Make space (padding) for the text
+  PENUP
+  FD :paddingx
+  LT 90
+  FD :paddingy
+  RT 90
+  
+  PENDOWN
+  LABEL textbox.text :tbox
+  
+  LOCALMAKE "active textbox.active :tbox
+  IF textbox.active :tbox [
+    LOCALMAKE "ls LABELSIZE
+    LOCALMAKE "lw (ITEM 1 :ls)
+    LOCALMAKE "count countwords textbox.text :tbox
+    
+    PU FD (:lw * :count) PD
+    FD (ITEM 1 :ls)
+  ]
+  
+  PENUP
+  SETXY :tempx :tempy
+  SETHEADING :temph
+  IF :tempd [ PENDOWN ]
+END
+
+; ===== GETTERS AND SETTERS: TEXTBOX ========= ;
+
+TO textbox.text :tbox
+  OUTPUT ITEM 5 :tbox
+END
+
+TO set.textbox.text :tbox :text
+  SETITEM 5 :tbox :text
+  
+  LOCALMAKE "cw comp.width :tbox
+  LOCALMAKE "size calc.button.size :text
+  LOCALMAKE "tw ITEM 1 :size
+  IF :tw > :cw [
+    set.comp.width :tbox :tw
+  ]
+  
+  IF :tw < :cw [
+    LOCALMAKE "mw :logogui.textbox.width.min
+    set.comp.width :tbox IFELSE (:tw < :mw) [ :mw ] [ :tw ]
+  ]
+END
+
+TO textbox.read.char :tbox
+  IF NOT textbox.active :tbox [ STOP ]
+  
+  LOCALMAKE "text textbox.text :tbox
+  LOCALMAKE "keycode :logogui.keycode.last
+  
+  IFELSE symbolicp :keycode [
+    LOCALMAKE "symbol char :keycode
+    set.textbox.text :tbox (WORD :text :symbol)
+  ] [
+    IF AND (:keycode = 8) (NOT EMPTY? :text) [
+      set.textbox.text :tbox (BUTLAST :text)
+    ]
+  ]
+END
+
+TO textbox.active :tbox
+  OUTPUT ITEM 6 :tbox
+END
+
+TO set.textbox.active :tbox :tf
+  SETITEM 6 :tbox :tf
+END
+

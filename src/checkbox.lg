@@ -1,0 +1,63 @@
+; LogoGUI: Checkbox
+; Written in Berkley Logo
+
+TO make.checkbox [:width 25] [:default "FALSE] [:ax 0] [:ay 0]
+  LOCALMAKE "position LISTTOARRAY (LIST :ax :ay)
+  LOCALMAKE "size LISTTOARRAY (LIST :width :width)
+  LOCALMAKE "selected IFELSE (:default = "TRUE) [ "TRUE ] [ "FALSE ]
+  LOCALMAKE "mouse LISTTOARRAY [FALSE FALSE]
+  
+  OP LISTTOARRAY (LIST "CHECKBOX :position :size :mouse :selected)
+END
+
+TO draw.checkbox :cbox
+  LOCALMAKE "tempx XCOR
+  LOCALMAKE "tempy YCOR
+  LOCALMAKE "temph HEADING
+  LOCALMAKE "tempd PENDOWN?
+  
+  LOCALMAKE "lx comp.x :cbox
+  LOCALMAKE "ty comp.y :cbox
+  LOCALMAKE "w comp.width :cbox
+  
+  PENUP
+  SETX :lx
+  SETY :ty - :w
+  SETHEADING 90
+  
+  ; Draw the border of the checkbox
+  PENDOWN
+  REPEAT 4 [ FD :w LT 90 ]
+  
+  IF checkbox.selected :cbox [
+    ; Draw check pattern
+    
+    PU
+    LOCALMAKE "x1 :lx
+    LOCALMAKE "y1 :ty - (:w * (3 / 5))
+    SETXY :x1 :y1
+    PD
+    
+    LOCALMAKE "x2 :lx + (:w / 2)
+    LOCALMAKE "y2 :ty - :w
+    SETXY :x2 :y2
+    
+    LOCALMAKE "x3 :lx + :w
+    LOCALMAKE "y3 :ty - (:w / 3)
+    SETXY :x3 :y3
+	]
+	
+  PENUP
+  SETXY :tempx :tempy
+  SETHEADING :temph
+  IF :tempd [ PENDOWN ]
+END
+
+TO checkbox.selected :cbox
+  OP ITEM 5 :cbox
+END
+
+TO set.checkbox.selected :cbox :tf
+  SETITEM 5 :cbox :tf
+END
+

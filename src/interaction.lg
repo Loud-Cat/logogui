@@ -1,0 +1,129 @@
+; Logo GUI: User Interaction
+; Written in Berkley Logo
+
+MAKE "logogui.running "FALSE
+
+MAKE "logogui.listeners []
+MAKE "logogui.actions []
+
+MAKE "logogui.key.pressed "FALSE
+MAKE "logogui.key.last "NONE
+MAKE "logogui.keycode.last "NONE
+
+MAKE "logogui.mouse.pressed "FALSE
+
+MAKE "logogui.key.debug "FALSE
+MAKE "logogui.mouse.debug "FALSE
+
+; Adds a mouse listener for the given component and assigns the given actions.
+; "actions" should be a list with up to four members:
+; mouse over, out, pressed, and released actions. These actions can be any
+; instruction list, but are ideally procedure calls.
+; Note: adding a listener is not enough to begin user interaction.
+; After all GUI components have been added to the scene,
+; make sure to call start.listeners to begin listening for user input.
+TO add.mouse.listener :comp :actions
+  MAKE "logogui.listeners (LPUT :comp :logogui.listeners)
+  MAKE "logogui.actions (LPUT :actions :logogui.actions)
+END
+
+; begins listening for user input.
+; Warning: this procedure starts a WHILE loop.
+; To stop it, make its condition false ( :logogui.running )
+; The procedure stop.listeners is a shorthand for this.
+TO start.listeners
+  MAKE "logogui.running "TRUE
+  FULLSCREEN
+  HIDETURTLE
+  
+  WHILE [:logogui.running] [
+		; ========== KEY PRESS ========== ;
+		LOCALMAKE "previous.key :logogui.key.pressed
+		LOCALMAKE "current.key KEY?
+		
+		MAKE "logogui.key.pressed :current.key
+		LOCAL [key, keycode]
+		
+		IF :logogui.key.pressed [
+		  MAKE "keycode RAWASCII READCHAR
+		  MAKE "logogui.keycode.last :keycode
+		  
+		  IFELSE (symbolicp :keycode) ~
+		    [ MAKE "logogui.key.last char :keycode ]
+		    [ MAKE "logogui.key.last "NONE ]
+		]
+		
+		; ========== MOUSE PRESS ========== ;
+		LOCALMAKE "previous.mouse :logogui.mouse.pressed
+		LOCALMAKE "current.mouse BUTTON?
+		
+		; ========= EVENT LISTENERS =========
+		FOREACH :logogui.listeners [
+		  LOCALMAKE "comp ?
+		  LOCALMAKE "actions ITEM # :logogui.actions
+		  LOCALMAKE "count COUNT :actions
+		  
+		  LOCALMAKE "text comp.text :comp
+		  LOCALMAKE "text (SENTENCE "\[ :text "\])
+		  
+		  ; ======= MOUSE OVER / OUT ======= ;
+		  LOCALMAKE "previous.over comp.mouse.over :comp
+		  LOCALMAKE "current.over mouseoverp :comp
+		  set.comp.mouse.over :comp :current.over
+		  
+		  IFELSE NOT :previous.over [
+		    IF :current.over [
+		      IF :logogui.mouse.debug [ PRINT (SENTENCE [MOUSE OVER:] :text) ]
+		      IF :count >= 1 [ RUN ITEM 1 :actions ]
+		    ]
+		  ]
+		  [
+		    IF NOT :current.over [
+		      IF :logogui.mouse.debug [ PRINT (SENTENCE [MOUSE OUT:] :text) ]
+		      IF :count >= 2 [ RUN ITEM 2 :actions ]
+		    ]
+		  ]
+		  
+		  ; ===== MOUSE PRESS / RELEASE ===== ;
+		  LOCALMAKE "previous.pressed comp.mouse.pressed :comp
+		  LOCALMAKE "current.pressed (AND :current.over :current.mouse)
+		  set.comp.mouse.pressed :comp :current.pressed
+		  
+		  IF AND (NOT :current.over) :current.mouse [
+				IF ((comp.type :comp) = "TEXTBOX) [
+					set.textbox.active :comp "FALSE
+				]
+		  ]
+		  
+		  IFELSE NOT :previous.pressed [
+		    IF :current.pressed [
+		      IF :logogui.mouse.debug [ PRINT (SENTENCE [MOUSE PRESSED:] :text) ]
+		      IF :count >= 3 [ RUN ITEM 3 :actions ]
+		    ]
+		  ]
+		  [
+		    IF AND :current.over NOT :current.pressed [
+		      IF :logogui.mouse.debug [ PRINT (SENTENCE [MOUSE RELEASED:] :text) ]
+		      IF :count >= 4 [ RUN ITEM 4 :actions ]
+		    ]
+		  ]
+		  
+		  ; ========== KEY PRESS / RELEASE ========== ;
+		  IFELSE NOT :previous.key [
+		    IF :current.key [
+		      IF (:count >= 5) [ RUN ITEM 5 :actions ]
+		    ]
+		  ]
+		  [
+		    IF NOT :current.key [
+		      IF :count >= 6 [ RUN ITEM 6 :actions ]
+		    ]
+		  ]
+		]
+	]
+END
+
+TO stop.listeners
+  MAKE "logogui.running "FALSE
+END
+

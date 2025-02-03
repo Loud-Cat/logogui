@@ -1,0 +1,191 @@
+; LogoGUI: Demo
+; Written in Berkley Logo
+
+; Import the library
+LOAD "src/logogui.lg
+
+; Set font size and pen width for components
+SETLABELHEIGHT 20
+SETPENSIZE 2
+
+; GUI Components can be either in a container or on their own.
+; To create a container, make a list of components.
+; One way to do that is by adding individual variables to a list.
+MAKE "btn1 make.button [Button 1]
+MAKE "btn2 make.button [Button Number Two]
+MAKE "btn3 make.button [Button 3]
+MAKE "buttons (LIST :btn1 :btn2 :btn3)
+
+; A box is a vertical or horizontal stack of components.
+; Boxes can also contain other boxes, of any orientation.
+; The second (optional) argument of make.box is :axis
+; It can be either "X or "Y and defaults to "X
+MAKE "btn.box (make.box :buttons "Y)
+set.box.border :btn.box "FALSE
+set.box.padding.around :btn.box 0
+
+; You can also add components directly to an existing list
+; before using it to create the container.
+MAKE "labels []
+add.item "labels make.label [Text Label 1]
+add.item "labels make.label [Label 2]
+add.item "labels make.label [Super Duper Long Label]
+add.item "labels make.button [A button? In the label factory?]
+MAKE "lab.box (make.box :labels "Y) ; create a vertical stack of mostly labels
+
+; Create a horizontal stack of two vertical stacks
+MAKE "boxes (make.box (LIST :btn.box :lab.box) "X)
+set.box.border :boxes "FALSE
+set.box.padding.around :boxes 0
+
+MAkE "label.text [Click the buttons and see what happens]
+MAKE "label make.label :label.text
+
+; Mouse actions for mouse over, out, pressed and released.
+MAKE "actions [
+  [ set.text :label [Mouse over? I hardly know 'er!] ]
+  [ set.text :label [Mouse out? What's that all about?] ]
+  [ set.text :label [Mouse pressed? You're the best!] ]
+  [ set.text :label [Mouse released? What a relief!] ]
+]
+
+FOREACH :buttons [
+  add.mouse.listener ? :actions
+]
+
+add.mouse.listener (item 4 :labels) [
+  [ set.text :label [How weird!] ]
+  []
+  [ set.text :label [I guess we doing buttons now] ]
+]
+
+MAKE "tbox make.textbox
+MAKE "submit.btn make.button [Submit]
+MAKE "clear.btn make.button [Clear]
+MAKE "cbox (make.checkbox 25 "TRUE)
+MAKE "rbtn make.radio.button
+set.radio.button.selected :rbtn "TRUE
+MAKE "tbox.list (LIST :tbox :submit.btn :clear.btn :cbox :rbtn)
+
+MAKE "tbox.stuff (make.box :tbox.list "X)
+set.box.border :tbox.stuff "FALSE
+set.box.padding.around :tbox.stuff 0
+
+MAKE "container (make.box (LIST :boxes :label :tbox.stuff) "Y)
+
+Make "logogui.key.debug "TRUE
+
+add.mouse.listener :tbox [
+  [] [] ; mouse over, mouse out
+  [ (enable.textbox :tbox) (set.text :label [Typie typie]) ]
+  [] ; mouse released
+  [ (textbox.read.char :tbox) repaint ]
+]
+
+add.mouse.listener :submit.btn [
+  [ set.text :label [Give me your words!] ]
+  [ set.text :label [I shall await your return] ]
+  [ set.text (PICK :buttons) textbox.text :tbox ]
+  [ set.text :label [Thank you] ]
+]
+
+add.mouse.listener :clear.btn [
+  [ set.text :label [Click to clear text box] ]
+  [ set.text :label [Click the buttons and see what happens!] ]
+  [ (set.textbox.text :tbox ") repaint ]
+]
+
+add.mouse.listener :cbox [
+  []
+  []
+  [ toggle.checkbox :cbox repaint ]
+]
+
+; You can also have "free" components outside any container.
+; Usually, this is the outer-most container component, but it can be any
+; logogui component. Do note, however, that without a layout manager,
+; you will have to manage its position and size independently.
+; Don't forget to call its draw procedure, too.
+MAKE "stop.btn make.button [STOP]
+
+add.mouse.listener :stop.btn [
+  [ set.text :label [ Click to stop GUI program ] ]
+  [ set.text :label :label.text ]
+  [ set.text :label [Farewell! Run start.listeners to restart the app] ]
+  [ stop.listeners ]
+]
+
+; ===== Helper Utilities ===== ;
+
+TO enable.textbox :text.box
+  set.textbox.active :text.box "TRUE
+  repaint
+END
+
+TO disable.textbox :text.box
+  set.textbox.active :text.box "FALSE
+  repaint
+END
+
+To set.text :comp :text
+  set.comp.text :comp :text
+  repaint
+End
+
+TO center.container
+	; Center the container around the origin.
+	; In Logo, positive y values are up.
+	
+	LOCALMAKE "old.x comp.x :container
+	LOCALMAKE "old.y comp.y :container
+	
+	LOCALMAKE "new.x (0 - comp.width :container) / 2
+	LOCALMAKE "new.y (comp.height :container) / 2 + 35
+	
+	LOCALMAKE "dx :new.x - :old.x
+	LOCALMAKE "dy :new.y - :old.y
+	translate.comp :container :dx :dy
+END
+
+TO move.stop.btn
+  LOCALMAKE "x comp.x :container
+  LOCALMAKE "y comp.y :container
+  LOCALMAKE "w comp.width :container
+  LOCALMAKE "h comp.height :container
+  
+  LOCALMAKE "bw comp.width :stop.btn
+  LOCALMAKE "bh comp.height :stop.btn
+  LOCALMAKE "pad :logogui.box.padding
+  
+  set.comp.x :stop.btn (:x + :w - :pad - :bw)
+  set.comp.y :stop.btn (:y - :h + :pad + :bh)
+END
+
+TO repaint
+  ; Repack GUI elements
+  repack.box :container
+  
+  center.box :btn.box
+  center.box :container
+  center.component :tbox.stuff :cbox
+  
+  center.container
+  move.stop.btn
+  LOCALMAKE "pad :logogui.box.padding
+  translate.comp :tbox.stuff (minus (:pad + comp.width :stop.btn) / 2) 0
+  
+  CLEARSCREEN
+  draw.box :container
+  draw.button :stop.btn
+END
+
+TO start
+  FULLSCREEN
+  
+  repaint
+  start.listeners
+END
+
+; ===== MAIN PROGRAM ===== ;
+start
+

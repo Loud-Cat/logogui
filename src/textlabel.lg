@@ -1,0 +1,65 @@
+; LogoGUI: Text Label
+; Written in Berkley Logo
+
+; Make Label
+; Create the properties of a text label GUI component
+; Outputs an array containing [x, y, w, h, t] where:
+; x and y are the top-left coordinate,
+; w and h are the width and height,
+; and t is the text (a word or list of words)
+TO make.label :text [:ax 0] [:ay 0]
+  LOCALMAKE "position LISTTOARRAY (LIST :ax :ay)
+  LOCALMAKE "size calc.label.size :text
+  LOCALMAKE "mouse LISTTOARRAY [FALSE FALSE]
+  
+  OUTPUT LISTTOARRAY (LIST "LABEL :position :size :mouse :text)
+END
+
+; Draw Label
+; Draws the text label onto the screen
+TO draw.label :lab
+  LOCALMAKE "tempx XCOR
+  LOCALMAKE "tempy YCOR
+  LOCALMAKE "temph HEADING
+  LOCALMAKE "tempd PENDOWN?
+  
+  LOCALMAKE "lx comp.x :lab
+  LOCALMAKE "ty comp.y :lab
+  LOCALMAKE "w comp.width :lab
+  LOCALMAKE "h comp.height :lab
+  
+  PENUP
+  SETX :lx
+  SETY :ty - :h - 2
+  SETHEADING 90
+  
+  PENDOWN
+  LABEL label.text :lab
+  
+  PENUP
+  SETXY :tempx :tempy
+  SETHEADING :temph
+  IF :tempd [ PENDOWN ]
+END
+
+TO calc.label.size :text
+  LOCALMAKE "ls LABELSIZE
+  LOCALMAKE "count countwords :text
+  
+  LOCALMAKE "w (:count * ITEM 1 :ls)
+  LOCALMAKE "h (ITEM 2 :ls)
+  OUTPUT LISTTOARRAY (LIST :w :h)
+END
+
+
+; ========== GETTERS AND SETTERS: LABELS ========== ;
+
+TO label.text :lab
+  OUTPUT ITEM 5 :lab
+END
+
+TO set.label.text :lab :text
+  SETITEM 5 :lab :text
+  set.comp.size :lab calc.label.size :text
+END
+

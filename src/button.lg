@@ -1,0 +1,83 @@
+; LogoGUI: Button
+; Written in Berkley Logo
+
+MAKE "logogui.button.padding 12
+
+; Create the properties of a text button GUI component
+; Outputs an array containing [BUTTON, position, size, mouse, text] where:
+; position contains the absolute top-left coordinates,
+; size contains the width and height,
+; mouse contains the current mouse states (over and pressed)
+; Note: this component does not manage it's own properties.
+; To do so, use a layout manager (such as a box) or manage it yourself.
+TO make.button :text [:ax 0] [:ay 0]
+  IF WORD? :text [ MAKE "text (LIST :text) ]
+  LOCALMAKE "position LISTTOARRAY (LIST :ax :ay)
+  LOCALMAKE "size     calc.button.size :text
+  
+  LOCALMAKE "mouse    LISTTOARRAY [FALSE FALSE]
+  OUTPUT LISTTOARRAY (LIST "BUTTON :position :size :mouse :text)
+END
+
+; Draw Button
+; Draws the text button onto the screen
+TO draw.button :btn
+  LOCALMAKE "tempx XCOR
+  LOCALMAKE "tempy YCOR
+  LOCALMAKE "temph HEADING
+  LOCALMAKE "tempd PENDOWN?
+  
+  LOCALMAKE "lx comp.x :btn
+  LOCALMAKE "ty comp.y :btn
+  LOCALMAKE "w comp.width :btn
+  LOCALMAKE "h comp.height :btn
+  LOCALMAKE "paddingx (THING "logogui.button.padding)
+  LOCALMAKE "paddingy :paddingx - 2
+  
+  PENUP
+  SETX :lx
+  SETY :ty - :h
+  SETHEADING 90
+  
+  ; Draw the border of the button
+  PENDOWN
+  REPEAT 2 [ FD :w LT 90 FD :h LT 90 ]
+  
+  ; Make space (padding) for the text
+  PENUP
+  FD :paddingx
+  LT 90
+  FD :paddingy
+  RT 90
+  
+  PENDOWN
+  LABEL button.text :btn
+  
+  PENUP
+  SETXY :tempx :tempy
+  SETHEADING :temph
+  IF :tempd [ PENDOWN ]
+END
+
+TO calc.button.size :text
+  LOCALMAKE "count countwords :text
+  LOCALMAKE "padding (THING "logogui.button.padding)
+  
+  LOCALMAKE "ls LABELSIZE
+  LOCALMAKE "w (:padding * 2) + (:count * ITEM 1 :ls)
+  LOCALMAKE "h (:padding * 2) + (ITEM 2 :ls)
+  OUTPUT (arr :w :h)
+END
+
+; ========== GETTERS AND SETTERS: BUTTON ========== ;
+TO button.text :btn
+  OUTPUT ITEM 5 :btn
+END
+
+TO set.button.text :btn :text
+  SETITEM 5 :btn :text
+  
+  LOCALMAKE "size calc.button.size :text
+  set.comp.width :btn (ITEM 1 :size)
+  set.comp.height :btn (ITEM 2 :size)
+END

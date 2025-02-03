@@ -1,0 +1,321 @@
+; LogoGUI: Layout Manager
+; Written in Berkley Logo
+
+MAKE "logogui.box.padding 8
+
+LOAD "src/getset.lg
+
+; Make box
+; Creates a basic container for GUI components.
+; A box is a one-dimensional (horizontal or vertical) sequence of components.
+; Boxes can (and often do) contain other boxes, of any orientation
+; Arguments (all optional):
+; comps: list of components to contain
+; axis: a word, either X or Y. The axis of component arrangement
+; border: either TRUE or FALSE. Container border visibility
+; pos: list of absolute coordinates (top left) of the container
+; pad: list of padding around and between components, in that order.
+; If the padding list is not given, it defaults to using
+; the :logogui.box.padding global variable for both padding options.
+TO make.box [:comps []] [:axis "X] [:border "TRUE] [:pos [0 0]] [:pad []]
+  LOCALMAKE "position LISTTOARRAY :pos
+  LOCALMAKE "size     LISTTOARRAY (LIST 0 0)
+  LOCALMAKE "mouse    LISTTOARRAY [FALSE FALSE]
+  
+  LOCALMAKE "padding  IFELSE (EQUAL? COUNT :pad 2) ~
+    [ LISTTOARRAY :pad ] ~
+    [ LISTTOARRAY (LIST :logogui.box.padding :logogui.box.padding) ]
+  
+  OUTPUT pack.box LISTTOARRAY (LIST
+    "BOX :position :size :mouse :comps :axis :border :padding)
+END
+
+TO pack.box :box [:recursive "TRUE]
+  LOCALMAKE "ct comp.type :box
+  IF :ct <> "BOX [ OUTPUT [NOT A BOX] ]
+  
+  LOCALMAKE "position comp.pos :box
+  LOCALMAKE "size comp.size :box
+  LOCALMAKE "mouse comp.mouse :box
+  
+  LOCALMAKE "ax comp.x :box
+  LOCALMAKE "ay comp.y :box
+  
+  LOCALMAKE "comps comps :box
+  LOCALMAKE "axis box.axis :box
+  LOCALMAKE "border box.border :box
+  
+  LOCALMAKE "count COUNT :comps
+  
+  LOCALMAKE "padding box.padding :box
+  LOCALMAKE "padding.around  (ITEM 1 :padding)
+  LOCALMAKE "padding.between (ITEM 2 :padding)
+  
+  LOCAL [w, h]
+  
+  IFELSE :axis = "X [ ; X-axis alignment (horizontal)
+    MAKE "w (total.width :box) + (:padding.around * 2)
+    MAKE "w :w + (:padding.between * (:count - 1))
+    
+    MAKE "h (max.height :box) + (:padding.around * 2)
+	] [ ; Y-axis alignment (vertical)
+		MAKE "h (total.height :box) + (:padding.around * 2)
+    MAKE "h :h + (:padding.between * (:count - 1))
+    
+    MAKE "w (max.width :box) + (:padding.around * 2)
+	]
+	
+  SETITEM 1 :size :w
+  SETITEM 2 :size :h
+  
+  IF EMPTY? :comps [
+  	OUTPUT LISTTOARRAY ~
+  		(LIST "BOX :position :size :mouse :comps :axis :border :padding)
+  ]
+  
+  ; Component starting position
+  LOCALMAKE "cx (:ax + :padding.around)
+  LOCALMAKE "cy (:ay - :padding.around)
+  
+  LOCALMAKE "first FIRST :comps
+  set.comp.xy :first :cx :cy
+  
+  IFELSE :axis = "X [
+  	MAKE "cx :cx + comp.width :first
+	] [
+		MAKE "cy :cy - comp.height :first
+	]
+	
+  FOREACH BUTFIRST :comps [
+    LOCALMAKE "comp ?
+    
+		IFELSE :axis = "X [
+			MAKE "cx :cx + :padding.between
+		  set.comp.xy :comp :cx :cy
+		  MAKE "cx :cx + comp.width :comp
+		] [
+			MAKE "cy :cy - :padding.between
+			set.comp.xy :comp :cx :cy
+			MAKE "cy :cy - comp.height :comp
+		]
+  ]
+  
+	FOREACH :comps [
+		LOCALMAKE "comp ?
+    LOCALMAKE "ct comp.type :comp
+    
+    IF AND :recursive (:ct = "BOX) [
+      LOCALMAKE "tmp (pack.box :comp :recursive)
+      set.comps :comp (comps :tmp)
+    ]
+    
+    LOCALMAKE "ch comp.height :comp
+    IF AND (:axis = "X) (:ct = "LABEL) [
+      set.comp.y :comp (:ay - :h) + (:ch + :padding.around)
+    ]
+  ]
+  
+  OUTPUT LISTTOARRAY ~
+  	(LIST "BOX :position :size :mouse :comps :axis :border :padding)
+END
+
+TO repack.box :box [:recursive "TRUE]
+  LOCALMAKE "comps comps :box
+  lOCALMAKE "count COUNT :comps
+  
+  LOCALMAKE "padding box.padding :box
+  LOCALMAKE "padding.around ITEM 1 :padding
+  LOCALMAKE "padding.between ITEM 2 :padding
+  
+  LOCALMAKE "axis box.axis :box
+  LOCALMAKE "w comp.width :box
+  LOCALMAKE "h comp.height :box
+  LOCALMAKE "pad (:padding.around * 2) + (:padding.between * (:count - 1))
+  LOCALMAKE "th :pad + total.height :box
+  LOCALMAKE "tw :pad + total.width :box
+  
+  IF :axis = "X [
+    IF :w < :tw [
+      set.comp.width :box :tw
+    ]
+  ]
+  
+  IF :axis = "Y [
+    IF :h < :th [
+      set.comp.height :box :th
+    ]
+  ]
+  
+  FOREACH comps :box [
+    LOCALMAKE "comp ?
+    LOCALMAKE "ct comp.type :comp
+    
+    IF AND :recursive (:ct = "BOX) [
+      (repack.box :comp :recursive)
+    ]
+  ]
+  
+  IGNORE (pack.box :box :recursive)
+END
+
+TO center.box :box [:recursive "TRUE]
+  (repack.box :box :recursive)
+  
+  LOCALMAKE "axis box.axis :box
+  LOCALMAKE "comps comps :box
+  LOCALMAKE "count COUNT :comps
+  LOCALMAKE "padding THING "logogui.box.padding
+  
+  LOCALMAKE "bx comp.x :box
+  LOCALMAKE "w comp.width :box
+  LOCALMAKE "h comp.height :box
+  
+  FOREACH :comps [
+    LOCALMAKE "comp ?
+    LOCALMAKE "ct comp.type :comp
+    
+
+    IF :axis = "Y [
+      LOCALMAKE "cw comp.width :comp
+      set.comp.x :comp :bx + ((:w / 2) - (:cw / 2))
+    ]
+    
+    IF AND :recursive (:ct = "BOX) [
+      (center.box :comp :recursive)
+    ]
+  ]
+END
+
+; Draw Box
+; Draws the container (and its components) onto the screen
+; Note: this procedure assumes that the turtle
+; is currently at the top-left coordinate of
+; the container's container (if any).
+; This is more of a helper utility than a complete procedure.
+TO draw.box :box
+  LOCALMAKE "tempx XCOR
+  LOCALMAKE "tempy YCOR
+  LOCALMAKE "temph HEADING
+  LOCALMAKE "tempd PENDOWN?
+  
+  LOCALMAKE "compx comp.x :box
+  LOCALMAKE "compy comp.y :box
+  
+  LOCALMAKE "w comp.width :box
+  LOCALMAKE "h comp.height :box
+  
+  LOCALMAKE "border box.border :box
+  PENUP
+  SETXY :compx :compy
+  SETHEADING 90
+  
+  PENDOWN
+  IF :border [
+    REPEAT 2 [ FD :w RT 90 FD :h RT 90 ]
+  ]
+  
+  FOREACH comps :box [
+    LOCALMAKE "comp ?
+    LOCALMAKE "ct comp.type :comp
+    
+    CASE :ct [
+      [ [BUTTON  ] draw.button :comp      ]
+      [ [LABEL   ] draw.label :comp       ]
+      [ [TEXTBOX ] draw.textbox :comp     ]
+      [ [BOX     ] draw.box :comp         ]
+      [ [CHECKBOX] draw.checkbox :comp    ]
+      [ [RADIO   ] draw.radio.button :comp]
+    ]
+  ]
+  
+  PENUP
+  SETXY :tempx :tempy
+  SETHEADING :temph
+  IF :tempd [ PENDOWN ]
+END
+
+TO max.width :box
+  LOCALMAKE "out 0
+  FOREACH (comps :box) [
+    LOCALMAKE "comp ?
+    LOCALMAKE "cw comp.width :comp
+    IF :cw > :out [ MAKE "out :cw ]
+  ]
+  OUTPUT :out
+END
+
+TO max.height :box
+  LOCALMAKE "out 0
+  FOREACH (comps :box) [
+    LOCALMAKE "comp ?
+    LOCALMAKE "ch comp.height :comp
+    IF :ch > :out [ MAKE "out :ch ]
+  ]
+  OUTPUT :out
+END
+
+TO total.height :box
+  LOCALMAKE "out 0
+  FOREACH (comps :box) [
+    LOCALMAKE "comp ?
+    LOCALMAKE "ch comp.height :comp
+    MAKE "out :out + :ch
+  ]
+  OUTPUT :out
+END
+
+TO total.width :box
+  LOCALMAKE "out 0
+  FOREACH (comps :box) [
+    LOCALMAKE "comp ?
+    LOCALMAKE "cw comp.width :comp
+    MAKE "out :out + :cw
+  ]
+  OUTPUT :out
+END
+
+; ========== GETTERS AND SETTERS: BOX ========== ;
+TO comps :box
+  OUTPUT ITEM 5 :box
+END
+
+TO set.comps :box :comps
+  SETITEM 5 :box :comps
+END
+
+TO box.axis :box
+  OUTPUT ITEM 6 :box
+END
+
+TO box.border :box
+  OUTPUT ITEM 7 :box
+END
+
+TO set.box.border :box :tf
+  SETITEM 7 :box :tf
+END
+
+TO box.padding :box
+  OUTPUT ITEM 8 :box
+END
+
+TO set.box.padding :box :padding
+  SETITEM 8 :box :padding
+END
+
+TO box.padding.around :box
+  OUTPUT ITEM 1 box.padding :box
+END
+
+TO set.box.padding.around :box :pa
+  SETITEM 1 (box.padding :box) :pa
+END
+
+TO box.padding.between :box
+  OUTPUT ITEM 2 box.padding :box
+END
+
+TO set.box.padding.between :box :pb
+  SETITEM 2 (box.padding :box) :pb
+END
+

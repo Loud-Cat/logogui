@@ -1,0 +1,89 @@
+; Logo GUI: Radio buttons
+; Made in Berkley Logo
+
+MAKE "logogui.radio.groups []
+
+TO make.radio.button [:group "buttons] [:ax 0] [:ay 0]
+  LOCALMAKE "position (arr :ax :ay)
+  LOCALMAKE "size     (arr 35 35)
+  LOCALMAKE "mouse    (arr "FALSE "FALSE)
+  LOCALMAKE "selected "FALSE
+  
+  LOCALMAKE "name WORD "logogui.radio.group. :group
+  
+  IF NOT MEMBER? :group :logogui.radio.groups [
+    MAKE "logogui.radio.groups LPUT :group :logogui.radio.groups
+    MAKE :name []
+  ]
+  
+  LOCALMAKE "btn (arr "RADIO :position :size :mouse :group :selected)
+  MAKE :name LPUT :btn (THING :name)
+  
+  OUTPUT :btn
+END
+
+TO select.radio.button :btn
+  LOCALMAKE "group radio.button.group :btn
+  LOCALMAKE "name WORD "logogui.radio.group. :group
+  
+  FOREACH :logogui.radio.groups [
+    IF (:group <> ?) [ goto "next ]
+    
+    FOREACH (THING :name) [
+    	LOCALMAKE "rb ? ; current radio button
+    	set.radio.button.selected :rb (:rb = :btn)
+    ]
+    
+    tag "next
+  ]
+END
+
+TO selected.radio :group
+  LOCALMAKE "name WORD "logogui.radio.group. :group
+  CATCH "ERROR [
+  	FOREACH (THING :name) [
+    	IF radio.button.selected ? [ OP # ]
+    ]
+    
+    OP -1
+  ]
+  
+  OP -1
+END
+
+TO draw.radio.button :btn
+	LOCALMAKE "tempx XCOR
+  LOCALMAKE "tempy YCOR
+  LOCALMAKE "temph HEADING
+  LOCALMAKE "tempd PENDOWN?
+  
+  LOCALMAKE "lx comp.x :btn
+  LOCALMAKE "ty comp.y :btn
+  LOCALMAKE "w comp.width :btn
+  
+  PU
+  SETX :lx + :w / 2
+  SETY :ty - :w / 2
+  PD
+  
+  LOCALMAKE "r1 :w / 2
+  LOCALMAKE "r2 :r1 * 0.6
+  
+  arc 360 :r1
+  IF radio.button.selected :btn [
+    PD arc 360 :r2
+	]
+END
+
+TO radio.button.group :btn
+  OUTPUT ITEM 5 :btn
+END
+
+TO radio.button.selected :btn
+  OUTPUT ITEM 6 :btn
+END
+
+TO set.radio.button.selected :btn :tf
+  SETITEM 6 :btn :tf
+END
+
