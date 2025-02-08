@@ -31,9 +31,16 @@ TO draw.button :btn
   LOCALMAKE "ty comp.y :btn
   LOCALMAKE "w comp.width :btn
   LOCALMAKE "h comp.height :btn
+  LOCALMAKE "txt button.text :btn
   LOCALMAKE "paddingx (THING "logogui.button.padding)
   LOCALMAKE "paddingy :paddingx - 2
   
+  LOCALMAKE "ls LABELSIZE
+  LOCALMAKE "lw ITEM 1 :ls
+  LOCALMAKE "c countwords :txt
+  LOCALMAKE "tw :lw * :c
+  LOCALMAKE "th ITEM 2 :ls
+
   PENUP
   SETX :lx
   SETY :ty - :h
@@ -45,9 +52,9 @@ TO draw.button :btn
   
   ; Make space (padding) for the text
   PENUP
-  FD :paddingx
+  FD ((:w - :tw) / 2)
   LT 90
-  FD :paddingy
+  FD ((:h - :th) / 2)
   RT 90
   
   PENDOWN
