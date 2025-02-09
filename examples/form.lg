@@ -61,13 +61,13 @@ To textbox.read :tbox
   ]
 End
 
-add.mouse.listener :first.textbox [
+add.listener :first.textbox [
 	[] []
 	[ set.textbox.active :first.textbox "TRUE repaint ] []
 	[ textbox.read :first.textbox ] []
 ]
 
-add.mouse.listener :last.textbox [
+add.listener :last.textbox [
 	[] []
 	[ set.textbox.active :last.textbox "TRUE repaint ] []
 	[ textbox.read :last.textbox ]
@@ -89,7 +89,7 @@ Foreach :genders [
 	
 	; empty actions for mouse over and mouse out
 	; command list for mouse pressed
-	add.mouse.listener run :btn (List [] [] :command)
+	add.listener run :btn (List [] [] :command)
 ]
 
 set.box.padding.around :gender.box 0
@@ -99,7 +99,7 @@ add.item "components :gender.box
 Make "adult.label make.label [Over 18 years old?]
 Make "adult.checkbox make.checkbox
 
-add.mouse.listener :adult.checkbox [
+add.listener :adult.checkbox [
 	[] []
 	[ toggle.checkbox :adult.checkbox repaint ]
 ]
@@ -128,7 +128,7 @@ To print.stuff
   Print (se "Adult: (IFELSE checkbox.selected :adult.checkbox ["Yes] ["No]))
 End
 
-add.mouse.listener :submit.button [
+add.listener :submit.button [
  [] []
  [ print.stuff ]
 ]
@@ -164,4 +164,3 @@ To start
 End
 
 start
-

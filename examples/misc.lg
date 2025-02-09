@@ -50,10 +50,10 @@ MAKE "actions [
 ]
 
 FOREACH :buttons [
-  add.mouse.listener ? :actions
+  add.listener ? :actions
 ]
 
-add.mouse.listener (item 4 :labels) [
+add.listener (item 4 :labels) [
   [ set.text :label [How weird!] ]
   []
   [ set.text :label [I guess we doing buttons now] ]
@@ -75,27 +75,27 @@ MAKE "container (make.box (LIST :boxes :label :tbox.stuff) "Y)
 
 Make "logogui.key.debug "TRUE
 
-add.mouse.listener :tbox [
+add.listener :tbox [
   [] [] ; mouse over, mouse out
   [ (enable.textbox :tbox) (set.text :label [Typie typie]) ]
   [] ; mouse released
   [ (textbox.read.char :tbox) repaint ]
 ]
 
-add.mouse.listener :submit.btn [
+add.listener :submit.btn [
   [ set.text :label [Give me your words!] ]
   [ set.text :label [I shall await your return] ]
   [ set.text (PICK :buttons) textbox.text :tbox ]
   [ set.text :label [Thank you] ]
 ]
 
-add.mouse.listener :clear.btn [
+add.listener :clear.btn [
   [ set.text :label [Click to clear text box] ]
   [ set.text :label [Click the buttons and see what happens!] ]
   [ (set.textbox.text :tbox ") repaint ]
 ]
 
-add.mouse.listener :cbox [
+add.listener :cbox [
   []
   []
   [ toggle.checkbox :cbox repaint ]
@@ -108,7 +108,7 @@ add.mouse.listener :cbox [
 ; Don't forget to call its draw procedure, too.
 MAKE "stop.btn make.button [STOP]
 
-add.mouse.listener :stop.btn [
+add.listener :stop.btn [
   [ set.text :label [ Click to stop GUI program ] ]
   [ set.text :label :label.text ]
   [ set.text :label [Farewell! Run start.listeners to restart the app] ]

@@ -22,7 +22,7 @@ MAKE "logogui.mouse.debug "FALSE
 ; Note: adding a listener is not enough to begin user interaction.
 ; After all GUI components have been added to the scene,
 ; make sure to call start.listeners to begin listening for user input.
-TO add.mouse.listener :comp :actions
+TO add.listener :comp :actions
   MAKE "logogui.listeners (LPUT :comp :logogui.listeners)
   MAKE "logogui.actions (LPUT :actions :logogui.actions)
 END
